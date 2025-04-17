@@ -7,10 +7,10 @@ import {
   PROVIDER_INFO,
 } from './openai';
 import {
-  getCustomOpenaiApiKey,
-  getCustomOpenaiApiUrl,
-  getCustomOpenaiModelName,
-} from '../config';
+  loadAzureOpenAIChatModels,
+  loadAzureOpenAIEmbeddingModels,
+  PROVIDER_INFO as AzureOpenAIInfo,
+} from './azureOpenAI';
 import { ChatOpenAI } from '@langchain/openai';
 import {
   loadOllamaChatModels,
@@ -50,10 +50,7 @@ export const PROVIDER_METADATA = {
   transformers: TransformersInfo,
   deepseek: DeepseekInfo,
   lmstudio: LMStudioInfo,
-  custom_openai: {
-    key: 'custom_openai',
-    displayName: 'Custom OpenAI',
-  },
+  azure_openai: AzureOpenAIInfo
 };
 
 export interface ChatModel {
@@ -77,6 +74,7 @@ export const chatModelProviders: Record<
   gemini: loadGeminiChatModels,
   deepseek: loadDeepseekChatModels,
   lmstudio: loadLMStudioChatModels,
+  azure_openai: loadAzureOpenAIChatModels,
 };
 
 export const embeddingModelProviders: Record<
@@ -88,6 +86,7 @@ export const embeddingModelProviders: Record<
   gemini: loadGeminiEmbeddingModels,
   transformers: loadTransformersEmbeddingsModels,
   lmstudio: loadLMStudioEmbeddingsModels,
+  azure_openai: loadAzureOpenAIEmbeddingModels,
 };
 
 export const getAvailableChatModelProviders = async () => {
@@ -99,28 +98,6 @@ export const getAvailableChatModelProviders = async () => {
       models[provider] = providerModels;
     }
   }
-
-  const customOpenAiApiKey = getCustomOpenaiApiKey();
-  const customOpenAiApiUrl = getCustomOpenaiApiUrl();
-  const customOpenAiModelName = getCustomOpenaiModelName();
-
-  models['custom_openai'] = {
-    ...(customOpenAiApiKey && customOpenAiApiUrl && customOpenAiModelName
-      ? {
-          [customOpenAiModelName]: {
-            displayName: customOpenAiModelName,
-            model: new ChatOpenAI({
-              openAIApiKey: customOpenAiApiKey,
-              modelName: customOpenAiModelName,
-              temperature: 0.7,
-              configuration: {
-                baseURL: customOpenAiApiUrl,
-              },
-            }) as unknown as BaseChatModel,
-          },
-        }
-      : {}),
-  };
 
   return models;
 };
